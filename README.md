@@ -4,13 +4,13 @@ ApplyEase is an intelligent Chrome extension that automates internship and job a
 
 ## Features
 
-- ** Smart Form Detection**: ML-powered classification of form fields (standard vs. unique)
-- ** AI Response Generation**: Gemini AI generates contextual responses for application questions
-- ** Auto-Fill**: Automatically fills standard fields from your saved profile
-- ** Application Tracking**: Logs all applications to Google Sheets automatically
-- ** Interactive Chat Assistant**: Get real-time help with difficult application questions
-- ** Smart Response Memory**: Learns from your edits to improve future suggestions
-- ** Secure Authentication**: JWT-based auth system to protect your data
+- **Smart Form Detection**: ML-powered classification of form fields (standard vs. unique)
+- **AI Response Generation**: Gemini AI generates contextual responses for application questions
+- **Auto-Fill**: Automatically fills standard fields from your saved profile
+- **Application Tracking**: Logs all applications to Google Sheets automatically
+- **Interactive Chat Assistant**: Get real-time help with difficult application questions
+- **Smart Response Memory**: Learns from your edits to improve future suggestions
+- **Secure Authentication**: JWT-based auth system to protect your data
 
 ##  System Architecture
 
@@ -297,5 +297,6 @@ Contributions are welcome! Please:
 ## License
 
 MIT License - feel free to use this project for personal or commercial purposes.
+
 
 
