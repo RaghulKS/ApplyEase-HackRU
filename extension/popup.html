@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApplyEase</title>
+  <style>
+    body { width: 450px; min-height: 600px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+    .container { min-height: 600px; display: flex; flex-direction: column; background: #fff; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 16px; text-align: center; }
+    .content { flex: 1; padding: 16px; overflow-y: auto; max-height: 520px; }
+    
+    .upload-section, .form-section, .dashboard { display: none; }
+    .upload-section.active, .form-section.active, .dashboard.active { display: block; }
+    
+    .upload-zone { border: 2px dashed #cbd5e0; border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+    .upload-zone:hover { border-color: #667eea; background: #f7fafc; }
+    .upload-zone.dragover { border-color: #667eea; background: #edf2f7; }
+    
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #2d3748; }
+    input, textarea, select { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
+    textarea { min-height: 60px; resize: vertical; font-family: inherit; }
+    select { cursor: pointer; }
+    
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 0.7fr 1fr; gap: 10px; }
+    .section-title { font-size: 15px; font-weight: 700; color: #2d3748; margin: 16px 0 8px 0; padding-top: 12px; border-top: 2px solid #e2e8f0; }
+    .section-title:first-child { border-top: none; padding-top: 0; }
+    
+    .btn { width: 100%; padding: 10px; border: none; border-radius: 6px; margin-top: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+    .btn-primary { background: #667eea; color: #fff; }
+    .btn-primary:hover { background: #5568d3; }
+    .btn-secondary { background: #f7fafc; color: #4a5568; border: 1px solid #e2e8f0; }
+    .btn-secondary:hover { background: #edf2f7; }
+    
+    .error { padding: 10px; background: #fed7d7; color: #c53030; border-radius: 6px; margin-bottom: 10px; display: none; font-size: 13px; }
+    .success { padding: 10px; background: #c6f6d5; color: #22543d; border-radius: 6px; margin-bottom: 10px; display: none; font-size: 13px; }
+    
+    .user-info { padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 12px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+    .stat-card { padding: 12px; background: #f7fafc; border-radius: 8px; text-align: center; border-left: 3px solid #667eea; }
+    .stat-value { font-size: 20px; font-weight: 700; color: #667eea; }
+    .stat-label { font-size: 11px; color: #718096; text-transform: uppercase; }
+    
+    .action-btn { padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; margin-bottom: 8px; cursor: pointer; text-align: left; font-weight: 500; font-size: 13px; }
+    .action-btn:hover { background: #f7fafc; }
+    
+    .loading { text-align: center; padding: 20px; display: none; }
+    .loading.active { display: block; }
+    
+    h2 { margin: 0 0 12px 0; font-size: 18px; }
+    h3 { margin: 0 0 8px 0; font-size: 15px; }
+    p { margin: 0; font-size: 13px; color: #718096; }
+    .small-text { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+    
+    .parsed-info { background: #edf2f7; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; }
+    .parsed-info strong { color: #2d3748; }
+    
+    .info-card { background: #f7fafc; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; }
+    .info-card strong { display: block; margin-bottom: 4px; color: #2d3748; }
+    .skill-tag { background: #667eea; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; display: inline-block; }
+    
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 20px;">ApplyEase</h1>
+      <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">AI-Powered Application Assistant</p>
+    </div>
+    
+    <div class="content">
+      <div id="loading" class="loading">
+        <p>Loading...</p>
+      </div>
+
+      <!-- Resume Upload Section -->
+      <div id="uploadSection" class="upload-section">
+        <h2>Welcome to ApplyEase! 👋</h2>
+        <p class="small-text">Let's start by uploading your resume. We'll automatically extract your information.</p>
+        
+        <div id="uploadError" class="error"></div>
+        <div id="uploadSuccess" class="success"></div>
+        
+        <div id="uploadZone" class="upload-zone">
+          <p style="font-size: 48px; margin: 0;">📄</p>
+          <p style="font-weight: 600; margin: 10px 0 5px 0;">Drop your resume here</p>
+          <p style="font-size: 12px; color: #a0aec0;">or click to browse</p>
+          <p style="font-size: 11px; color: #a0aec0; margin-top: 10px;">Supports: PDF, TXT, DOCX</p>
+        </div>
+        
+        <input type="file" id="resumeFile" accept=".pdf,.txt,.doc,.docx">
+        
+        <button id="skipUpload" class="btn btn-secondary" style="margin-top: 12px;">Skip & Enter Manually</button>
+      </div>
+
+      <!-- Profile Form Section -->
+      <div id="formSection" class="form-section">
+        <h2>Your Profile</h2>
+        <p class="small-text">Review and complete your information. All fields can be edited anytime.</p>
+        
+        <div id="formError" class="error"></div>
+        <div id="formSuccess" class="success"></div>
+        
+        <div id="parsedInfo" class="parsed-info" style="display: none;">
+          <strong>✓ Resume Parsed!</strong> Please review and complete the information below.
+        </div>
+        
+        <form id="profileForm">
+          <div class="section-title">Basic Information</div>
+          
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="firstName">First Name *</label>
+              <input type="text" id="firstName" required>
+            </div>
+            <div class="form-group">
+              <label for="middleName">Middle</label>
+              <input type="text" id="middleName" placeholder="Optional">
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name *</label>
+              <input type="text" id="lastName" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" required>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone">
+            </div>
+            <div class="form-group">
+              <label for="birthday">Birthday</label>
+              <input type="date" id="birthday">
+            </div>
+          </div>
+          
+          <div class="section-title">Location</div>
+          
+          <div class="form-group">
+            <label for="location">City, State</label>
+            <input type="text" id="location" placeholder="e.g., New York, NY">
+          </div>
+          
+          <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" id="address">
+          </div>
+          
+          <div class="form-group">
+            <label for="postalCode">Postal Code</label>
+            <input type="text" id="postalCode">
+          </div>
+          
+          <div class="section-title">Professional Links</div>
+          
+          <div class="form-group">
+            <label for="linkedinUrl">LinkedIn URL</label>
+            <input type="url" id="linkedinUrl" placeholder="https://linkedin.com/in/yourprofile">
+          </div>
+          
+          <div class="form-group">
+            <label for="githubUrl">GitHub URL</label>
+            <input type="url" id="githubUrl" placeholder="https://github.com/yourusername">
+          </div>
+          
+          <div class="form-group">
+            <label for="portfolioUrl">Portfolio URL</label>
+            <input type="url" id="portfolioUrl">
+          </div>
+          
+          <div class="section-title">Education <button type="button" id="addEducation" class="btn-secondary" style="float: right; width: auto; padding: 4px 12px; font-size: 11px; margin-top: -4px;">+ Add</button></div>
+          <div id="educationList" style="margin-bottom: 12px;">
+            <p class="small-text" style="margin-bottom: 8px;">Parsed from your resume (click to edit):</p>
+            <div id="educationEntries"></div>
+          </div>
+          
+          <div class="section-title">Work Experience <button type="button" id="addExperience" class="btn-secondary" style="float: right; width: auto; padding: 4px 12px; font-size: 11px; margin-top: -4px;">+ Add</button></div>
+          <div id="experienceList" style="margin-bottom: 12px;">
+            <p class="small-text" style="margin-bottom: 8px;">Parsed from your resume (click to edit):</p>
+            <div id="experienceEntries"></div>
+          </div>
+          
+          <div class="section-title">Skills <button type="button" id="editSkills" class="btn-secondary" style="float: right; width: auto; padding: 4px 12px; font-size: 11px; margin-top: -4px;">Edit</button></div>
+          <div id="skillsList" style="margin-bottom: 12px;">
+            <p class="small-text" style="margin-bottom: 8px;">Parsed from your resume:</p>
+            <div id="skillsEntries" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+            <textarea id="skillsTextarea" style="display: none; margin-top: 8px;" placeholder="Enter skills separated by commas"></textarea>
+          </div>
+          
+          <div class="section-title">Diversity & Legal Information</div>
+          <p class="small-text" style="margin-bottom: 10px;">Optional - Used for application forms that require this information</p>
+          
+          <div class="form-group">
+            <label for="ethnicity">Ethnicity</label>
+            <select id="ethnicity">
+              <option value="">Prefer not to say</option>
+              <option value="Hispanic or Latino">Hispanic or Latino</option>
+              <option value="White">White</option>
+              <option value="Black or African American">Black or African American</option>
+              <option value="Asian">Asian</option>
+              <option value="Native American or Alaska Native">Native American or Alaska Native</option>
+              <option value="Native Hawaiian or Pacific Islander">Native Hawaiian or Pacific Islander</option>
+              <option value="Two or more races">Two or more races</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="gender">Gender</label>
+              <select id="gender">
+                <option value="">Prefer not to say</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Non-binary">Non-binary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="veteranStatus">Veteran Status</label>
+              <select id="veteranStatus">
+                <option value="">Prefer not to say</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="authorizedUs">Authorized to work in US?</label>
+            <select id="authorizedUs">
+              <option value="">Select...</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="requireSponsorship">Require visa sponsorship?</label>
+            <select id="requireSponsorship">
+              <option value="">Select...</option>
+              <option value="Yes">Yes, now or in future</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hasDisability">Do you have a disability?</label>
+              <select id="hasDisability">
+                <option value="">Prefer not to say</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="lgbtq">Identify as LGBTQ+?</label>
+              <select id="lgbtq">
+                <option value="">Prefer not to say</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary" style="margin-top: 16px;">Save Profile</button>
+          <button type="button" id="uploadAnotherResume" class="btn btn-secondary">Upload Different Resume</button>
+        </form>
+      </div>
+
+      <!-- Dashboard Section -->
+      <div id="dashboardSection" class="dashboard">
+        <div class="user-info">
+          <h3 id="userName">Welcome!</h3>
+          <p id="userEmail"></p>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalApplications">0</div>
+            <div class="stat-label">Applications</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="savedResponses">0</div>
+            <div class="stat-label">Saved Responses</div>
+          </div>
+        </div>
+        
+        <h3 style="margin-bottom: 8px;">Quick Actions</h3>
+        <button id="detectFieldsBtn" class="action-btn">🔍 Detect Form Fields</button>
+        <button id="autoFillBtn" class="action-btn">✨ Auto-Fill Form</button>
+        <button id="openPanelBtn" class="action-btn">💬 Open Assistant Panel</button>
+        <button id="viewApplicationsBtn" class="action-btn">📊 View Applications</button>
+        
+        <button id="editProfileBtn" class="btn btn-secondary" style="margin-top: 12px;">Edit Profile</button>
+      </div>
+    </div>
+  </div>
+  <script src="src/popup/popup.js"></script>
+</body>
+</html>
